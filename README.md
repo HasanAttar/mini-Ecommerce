@@ -41,14 +41,15 @@ Password: Admin123
 git clone https://github.com/YOUR_USERNAME/mini-ecommerce.git
 cd mini-ecommerce
 2. Install Dependencies
-Backend
 
+Backend
 cd backend
 npm install
-Frontend
 
+Frontend
 cd ../frontend
 npm install
+
 3. Configure Environment Variables
 Create a .env file inside the backend folder with the following:
 
@@ -57,17 +58,13 @@ env
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/mini-ecommerce
 JWT_SECRET=your_jwt_secret
+
 4. Run the App
 Start Backend
-bash
-Copy
-Edit
 cd backend
 npm start
+
 Start Frontend
-bash
-Copy
-Edit
 cd ../frontend
 npm start
 Frontend runs at: http://localhost:3000
