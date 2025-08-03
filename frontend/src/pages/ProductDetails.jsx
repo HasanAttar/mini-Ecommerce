@@ -71,7 +71,7 @@ function ProductDetails() {
 >
   <CardMedia
     component="img"
-    image={product.imageUrl || 'https://picsum.photos/600/400'}
+    image={product.image }
     alt={product.name}
     onError={(e) => {
       e.target.onerror = null;

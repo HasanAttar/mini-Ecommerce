@@ -1,10 +1,8 @@
+import './ProductList.css';
 import { useEffect, useState } from 'react';
 import {
   Container,
   Grid,
-  Card,
-  CardContent,
-  CardMedia,
   Typography,
   CircularProgress,
   Box,
@@ -12,6 +10,9 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Card,
+  CardContent,
+  CardMedia,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -91,36 +92,26 @@ function ProductList() {
           {products.map((product) => (
             <Grid item xs={12} sm={6} md={4} key={product._id}>
               <Link to={`/products/${product._id}`} style={{ textDecoration: 'none' }}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    borderRadius: 4,
-                    boxShadow: 4,
-                    transition: 'transform 0.3s, box-shadow 0.3s',
-                    '&:hover': {
-                      transform: 'scale(1.03)',
-                      boxShadow: 6,
-                    },
-                  }}
-                >
+                <Card className="product-card">
                   <CardMedia
                     component="img"
-                    height="200"
-                    image={product.imageUrl || 'https://picsum.photos/300/200?grayscale'}
+                    image={product.image || 'https://via.placeholder.com/300x200?text=No+Image'}
                     alt={product.name}
+                    className="product-image"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = 'https://picsum.photos/300/200?grayscale';
+                      e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
                     }}
-                    sx={{ objectFit: 'cover' }}
                   />
-                  <CardContent>
-                    <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary">
-                      {product.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" mb={1}>
-                      {product.description?.slice(0, 70)}...
-                    </Typography>
+                  <CardContent className="product-content">
+                    <Box>
+                      <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary" noWrap>
+                        {product.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" mb={1}>
+                        {product.description?.slice(0, 60)}...
+                      </Typography>
+                    </Box>
                     <Typography variant="h6" color="success.main">
                       ${product.price}
                     </Typography>

@@ -25,10 +25,10 @@ A simple full-stack e-commerce application built with:
 
 ## 🚀 Demo
 
-📦 **Live URL** (Optional): _Not hosted yet_
+
 
 🧪 **Demo Admin Login**:
-Username: admin2
+Username: Admin2
 Password: Admin123
 
 
