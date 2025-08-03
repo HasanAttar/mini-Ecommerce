@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Container,
   Typography,
@@ -11,6 +11,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Box,
+  Card,
+  CardMedia,
+  CardContent,
+  CardActions,
 } from '@mui/material';
 import { Delete, Edit } from '@mui/icons-material';
 import axios from 'axios';
@@ -30,6 +35,7 @@ function AdminProductManager() {
     image: '',
   });
   const [editId, setEditId] = useState(null);
+  const formRef = useRef(null); // 🔥 scroll reference
 
   const headers = {
     headers: { Authorization: `Bearer ${token}` },
@@ -65,8 +71,6 @@ function AdminProductManager() {
   };
 
   const handleSubmit = async (e) => {
-    console.log("Submitting form:", form);
-
     e.preventDefault();
     try {
       if (editId) {
@@ -87,13 +91,17 @@ function AdminProductManager() {
       name: product.name,
       description: product.description,
       price: product.price,
-      quantity: product.quantity,
       inventory: product.inventory,
       category: product.category?._id || product.category,
       image: product.image,
     });
 
     setEditId(product._id);
+
+    // 🔥 Scroll to form on edit
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const handleDelete = async (id) => {
@@ -108,6 +116,7 @@ function AdminProductManager() {
   if (!user || user.role !== 'admin') {
     return <Typography variant="h6" mt={4} align="center">Access Denied</Typography>;
   }
+
   return (
     <Layout>
       <Container sx={{ mt: 4 }}>
@@ -115,7 +124,7 @@ function AdminProductManager() {
           Product Manager
         </Typography>
 
-        <Paper sx={{ p: 3, mb: 4 }}>
+        <Paper sx={{ p: 3, mb: 6 }} ref={formRef}>
           <Typography variant="h6" gutterBottom>
             {editId ? 'Edit Product' : 'Add Product'}
           </Typography>
@@ -145,7 +154,7 @@ function AdminProductManager() {
               <Grid item xs={12} sm={6}>
                 <TextField
                   name="inventory"
-                  label="inventory"
+                  label="Inventory"
                   type="number"
                   value={form.inventory}
                   onChange={handleChange}
@@ -153,7 +162,7 @@ function AdminProductManager() {
                   required
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
+                 <Grid item xs={12} sm={6}>
                 <FormControl fullWidth required>
                   <InputLabel id="category-label">Category</InputLabel>
                   <Select
@@ -173,7 +182,6 @@ function AdminProductManager() {
                   </Select>
                 </FormControl>
               </Grid>
-
               <Grid item xs={12}>
                 <TextField
                   name="description"
@@ -199,48 +207,58 @@ function AdminProductManager() {
                   <img
                     src={form.image}
                     alt="Preview"
-                    style={{ maxWidth: '100%', maxHeight: 200, marginTop: '1rem', borderRadius: '8px' }}
+                    style={{ maxWidth: '100%', maxHeight: 200, borderRadius: '8px', marginTop: 10 }}
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = 'https://placehold.co/300x200?text=No+Image';
                     }}
                   />
-
                 </Grid>
               )}
-
-
+              <Grid item xs={12}>
+                <Button type="submit" variant="contained" fullWidth>
+                  {editId ? 'Update Product' : 'Add Product'}
+                </Button>
+              </Grid>
             </Grid>
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              sx={{ mt: 2 }}
-            >
-              {editId ? 'Update Product' : 'Add Product'}
-            </Button>
           </form>
         </Paper>
 
-        <Grid container spacing={2}>
+        <Grid container spacing={3}>
           {products.map((product) => (
             <Grid item xs={12} sm={6} md={4} key={product._id}>
-              <Paper sx={{ p: 2 }}>
+              <Card sx={{ height: '100%', borderRadius: 3, boxShadow: 4, display: 'flex', flexDirection: 'column' }}>
                 {product.image && (
-                  <img
-                    src={product.image}
+                  <CardMedia
+                    component="img"
+                    image={product.image}
                     alt={product.name}
-                    style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
-                    onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; }}
+                    height="180"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                    }}
                   />
                 )}
-                <Typography variant="h6" mt={1}>{product.name}</Typography>
-                <Typography variant="body2">{product.description}</Typography>
-                <Typography>${product.price}</Typography>
-                <IconButton onClick={() => handleEdit(product)}><Edit /></IconButton>
-                <IconButton onClick={() => handleDelete(product._id)}><Delete /></IconButton>
-              </Paper>
-
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" fontWeight="bold" gutterBottom>{product.name}</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                  }}>
+                    {product.description}
+                  </Typography>
+                  <Typography variant="subtitle1" color="primary" mt={1}>
+                    ${product.price}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <IconButton onClick={() => handleEdit(product)}><Edit /></IconButton>
+                  <IconButton onClick={() => handleDelete(product._id)}><Delete /></IconButton>
+                </CardActions>
+              </Card>
             </Grid>
           ))}
         </Grid>

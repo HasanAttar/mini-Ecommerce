@@ -1,8 +1,10 @@
-import './ProductList.css';
 import { useEffect, useState } from 'react';
 import {
   Container,
   Grid,
+  Card,
+  CardContent,
+  CardMedia,
   Typography,
   CircularProgress,
   Box,
@@ -10,9 +12,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Card,
-  CardContent,
-  CardMedia,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -53,20 +52,28 @@ function ProductList() {
       setProducts(allProducts);
     } else {
       const filtered = allProducts.filter(
-        (product) => product.category?._id === categoryId || product.category === categoryId
+        (product) =>
+          product.category?._id === categoryId ||
+          product.category === categoryId
       );
       setProducts(filtered);
     }
   };
 
   return (
-    <Container sx={{ mt: 5, pb: 6 }}>
-      <Typography variant="h3" align="center" fontWeight="bold" color="primary.main" mb={3}>
-        Explore Our Products
+    <Container maxWidth="lg" sx={{ mt: 5, pb: 8 }}>
+      <Typography
+        variant="h4"
+        align="center"
+        fontWeight="bold"
+        color="primary"
+        mb={4}
+      >
+        🌟 Our Products
       </Typography>
 
-      <Box mb={4} display="flex" justifyContent="center">
-        <FormControl sx={{ minWidth: 250 }}>
+      <Box display="flex" justifyContent="center" mb={4}>
+        <FormControl sx={{ minWidth: 250 }} size="medium">
           <InputLabel>Filter by Category</InputLabel>
           <Select
             value={selectedCategory}
@@ -84,35 +91,57 @@ function ProductList() {
       </Box>
 
       {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="40vh">
-          <CircularProgress size={50} />
+        <Box display="flex" justifyContent="center" minHeight="50vh">
+          <CircularProgress />
         </Box>
+      ) : products.length === 0 ? (
+        <Typography variant="h6" align="center" color="text.secondary">
+          No products found.
+        </Typography>
       ) : (
         <Grid container spacing={4}>
           {products.map((product) => (
             <Grid item xs={12} sm={6} md={4} key={product._id}>
               <Link to={`/products/${product._id}`} style={{ textDecoration: 'none' }}>
-                <Card className="product-card">
+                <Card
+                  sx={{
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    borderRadius: 3,
+                    boxShadow: 4,
+                    transition: '0.3s ease-in-out',
+                    '&:hover': {
+                      transform: 'scale(1.03)',
+                      boxShadow: 6,
+                    },
+                  }}
+                >
                   <CardMedia
                     component="img"
+                    height="180"
                     image={product.image || 'https://via.placeholder.com/300x200?text=No+Image'}
                     alt={product.name}
-                    className="product-image"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
                     }}
+                    sx={{ objectFit: 'cover', borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
                   />
-                  <CardContent className="product-content">
-                    <Box>
-                      <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary" noWrap>
-                        {product.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" mb={1}>
-                        {product.description?.slice(0, 60)}...
-                      </Typography>
-                    </Box>
-                    <Typography variant="h6" color="success.main">
+                  <CardContent>
+                    <Typography variant="h6" fontWeight="bold" gutterBottom color="text.primary">
+                      {product.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
+                      {product.description}
+                    </Typography>
+                    <Typography variant="subtitle1" mt={1} fontWeight="medium" color="success.main">
                       ${product.price}
                     </Typography>
                   </CardContent>
