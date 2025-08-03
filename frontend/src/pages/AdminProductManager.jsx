@@ -1,0 +1,252 @@
+import { useEffect, useState } from 'react';
+import {
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  Paper,
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from '@mui/material';
+import { Delete, Edit } from '@mui/icons-material';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import Layout from '../components/Layout';
+
+function AdminProductManager() {
+  const { token, user } = useAuth();
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [form, setForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    inventory: '',
+    category: '',
+    image: '',
+  });
+  const [editId, setEditId] = useState(null);
+
+  const headers = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/products', headers);
+      setProducts(res.data);
+    } catch (err) {
+      console.error('Failed to load products:', err);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/categories', headers);
+      setCategories(res.data);
+    } catch (err) {
+      console.error('Failed to load categories:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      fetchProducts();
+      fetchCategories();
+    }
+  }, [user]);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    console.log("Submitting form:", form);
+
+    e.preventDefault();
+    try {
+      if (editId) {
+        await axios.put(`http://localhost:5000/api/products/${editId}`, form, headers);
+      } else {
+        await axios.post(`http://localhost:5000/api/products`, form, headers);
+      }
+      setForm({ name: '', description: '', price: '', inventory: '', category: '', image: '' });
+      setEditId(null);
+      fetchProducts();
+    } catch (err) {
+      console.error('Submit error:', err.response?.data || err.message);
+    }
+  };
+
+  const handleEdit = (product) => {
+    setForm({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      quantity: product.quantity,
+      inventory: product.inventory,
+      category: product.category?._id || product.category,
+      image: product.image,
+    });
+
+    setEditId(product._id);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/products/${id}`, headers);
+      fetchProducts();
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+  };
+
+  if (!user || user.role !== 'admin') {
+    return <Typography variant="h6" mt={4} align="center">Access Denied</Typography>;
+  }
+  return (
+    <Layout>
+      <Container sx={{ mt: 4 }}>
+        <Typography variant="h4" gutterBottom align="center">
+          Product Manager
+        </Typography>
+
+        <Paper sx={{ p: 3, mb: 4 }}>
+          <Typography variant="h6" gutterBottom>
+            {editId ? 'Edit Product' : 'Add Product'}
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="name"
+                  label="Name"
+                  value={form.name}
+                  onChange={handleChange}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="price"
+                  label="Price"
+                  type="number"
+                  value={form.price}
+                  onChange={handleChange}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="inventory"
+                  label="inventory"
+                  type="number"
+                  value={form.inventory}
+                  onChange={handleChange}
+                  fullWidth
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth required>
+                  <InputLabel id="category-label">Category</InputLabel>
+                  <Select
+                    labelId="category-label"
+                    name="category"
+                    value={form.category}
+                    onChange={handleChange}
+                    label="Category"
+                    fullWidth
+                    sx={{ minWidth: 200 }} // optional: ensure wider min-width
+                  >
+                    {categories.map((cat) => (
+                      <MenuItem key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  name="description"
+                  label="Description"
+                  value={form.description}
+                  onChange={handleChange}
+                  fullWidth
+                  multiline
+                  rows={2}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  name="image"
+                  label="Image URL"
+                  value={form.image}
+                  onChange={handleChange}
+                  fullWidth
+                />
+              </Grid>
+              {form.image && (
+                <Grid item xs={12}>
+                  <img
+                    src={form.image}
+                    alt="Preview"
+                    style={{ maxWidth: '100%', maxHeight: 200, marginTop: '1rem', borderRadius: '8px' }}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = 'https://placehold.co/300x200?text=No+Image';
+                    }}
+                  />
+
+                </Grid>
+              )}
+
+
+            </Grid>
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{ mt: 2 }}
+            >
+              {editId ? 'Update Product' : 'Add Product'}
+            </Button>
+          </form>
+        </Paper>
+
+        <Grid container spacing={2}>
+          {products.map((product) => (
+            <Grid item xs={12} sm={6} md={4} key={product._id}>
+              <Paper sx={{ p: 2 }}>
+                {product.image && (
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '8px' }}
+                    onError={(e) => { e.target.src = 'https://via.placeholder.com/300x200?text=No+Image'; }}
+                  />
+                )}
+                <Typography variant="h6" mt={1}>{product.name}</Typography>
+                <Typography variant="body2">{product.description}</Typography>
+                <Typography>${product.price}</Typography>
+                <IconButton onClick={() => handleEdit(product)}><Edit /></IconButton>
+                <IconButton onClick={() => handleDelete(product._id)}><Delete /></IconButton>
+              </Paper>
+
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Layout>
+  );
+}
+
+export default AdminProductManager;
