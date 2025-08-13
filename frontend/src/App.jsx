@@ -1,4 +1,6 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { isTokenExpired } from './utils/token';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProductList from './pages/ProductList';
@@ -10,10 +12,19 @@ import ProductDetails from './pages/ProductDetails';
 import { useAuth } from './context/AuthContext';
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token && isTokenExpired(token)) {
+      logout();
+      navigate('/login');
+    }
+  }, [logout, navigate]);
 
   if (loading) {
-    return <div>Loading...</div>; // or a spinner
+    return <div>Loading...</div>;
   }
 
   return (
@@ -23,28 +34,34 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/products/:id" element={<ProductDetails />} />
 
+      <Route path="*" element={<Navigate to="/" />} />
 
-<Route path="*" element={<Navigate to="/" />} />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route path="/admin/dashboard" element={
-        <ProtectedRoute requiredRole="admin">
-          <AdminDashboard />
-        </ProtectedRoute>
-      } />
+      <Route
+        path="/admin/products"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminProductManager />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route path="/admin/products" element={
-        <ProtectedRoute requiredRole="admin">
-          <AdminProductManager />
-         </ProtectedRoute>
-      } />
-
-      <Route path="/admin/categories" element={
-        <ProtectedRoute requiredRole="admin">
-          <AdminCategoryManager />
-        </ProtectedRoute>
-      } />
-
-
+      <Route
+        path="/admin/categories"
+        element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminCategoryManager />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
